@@ -11,13 +11,17 @@ export class RegisterDto {
 
     @IsString()
     @IsNotEmpty()
-    readonly confirmPassword: string;
-
-    @IsString()
-    @IsNotEmpty()
     readonly name: string;
 
     @IsString()
     @IsNotEmpty()
     readonly lastName: string
+
+    @IsString()
+    @IsNotEmpty()
+    readonly tenantName: string
+
+    @IsString()
+    @IsNotEmpty()
+    readonly tenantSlug: string
 }

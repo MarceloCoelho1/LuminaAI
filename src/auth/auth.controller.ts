@@ -1,13 +1,33 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Headers, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
 
-  @Post()
-  async register(@Body()) {
+  @Post('login')
+  async login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
+  }
 
+  @Post('register')
+  async register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto);
+  }
+
+  @Post('switch-tenant')
+  async switchTenant(@Body() body: { tenantId: string }, @Headers('authorization') authHeader: string) {
+    if (!authHeader) throw new UnauthorizedException('No token provided');
+
+    const token = authHeader.replace('Bearer ', '');
+    try {
+      const userId = this.authService.getUserIdFromToken(token);
+      return await this.authService.switchTenant(userId, body.tenantId);
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token');
+    }
   }
 }
