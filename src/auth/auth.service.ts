@@ -60,36 +60,38 @@ export class AuthService {
 
         const hashedPassword = bcrypt.hashSync(registerDto.password, 10);
 
-        const user = await this.prisma.user.create({
-            data: {
-                email: registerDto.email,
-                name: registerDto.name,
-                lastName: registerDto.lastName,
-                password: hashedPassword,
-            },
-        });
+        this.prisma.$transaction(async (tx) => {
+            const user = await tx.user.create({
+                data: {
+                    email: registerDto.email,
+                    name: registerDto.name,
+                    lastName: registerDto.lastName,
+                    password: hashedPassword,
+                },
+            });
 
-        const tenant = await this.prisma.tenant.create({
-            data: {
-                name: registerDto.tenantName,
-                slug: registerDto.tenantSlug,
-            }
+            const tenant = await tx.tenant.create({
+                data: {
+                    name: registerDto.tenantName,
+                    slug: registerDto.tenantSlug,
+                }
+            })
+
+            const member = await tx.member.create({
+                data: {
+                    userId: user.id,
+                    tenantId: tenant.id,
+                    role: TenantRole.OWNER,
+                }
+            })
+
+            return {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                message: 'User registered successfully'
+            };
         })
-
-        const member = await this.prisma.member.create({
-            data: {
-                userId: user.id,
-                tenantId: tenant.id,
-                role: TenantRole.OWNER,
-            }
-        })
-
-        return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            message: 'User registered successfully'
-        };
     }
 
     async switchTenant(userId: string, tenantId: string) {
