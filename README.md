@@ -26,8 +26,8 @@ LuminaAI é uma plataforma **Multi-tenant** de orquestração de LLMs (Gemini) q
     - [ x ] Implementar `POST /auth/register`: Criar User, Tenant e Member (OWNER) em uma **Prisma Transaction**.
     - [ x ] Implementar `POST /auth/login`: Retornar JWT com `tenantId` e `role` no payload.
 - [ ] **Autorização (RBAC):**
-    - [ ] Criar Decorator `@Roles(TenantRole.ADMIN)`.
-    - [ ] Criar `RolesGuard` para validar acesso baseado na organização atual.
+    - [ x ] Criar Decorator `@Roles(TenantRole.ADMIN)`.
+    - [ x ] Criar `RolesGuard` para validar acesso baseado na organização atual.
     - [ ] Criar `TenantInterceptor` para injetar o contexto da organização nas requisições.
 
 ### 📂 Fase 2: Ingestão de Documentos e Pipeline de Dados (ETL)
