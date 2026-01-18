@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { TenantRole } from 'generated/prisma/enums';
@@ -16,6 +16,17 @@ export class RoleGuard implements CanActivate {
             return true;
         }
         const authUser = context.switchToHttp().getRequest().user;
-        return authUser.role === TenantRole.ADMIN || authUser.role === TenantRole.OWNER || requiredRoles.includes(authUser.role);
+
+        if (!authUser.role || !authUser.tenantId) {
+            throw new ForbiddenException('Tenant context required. Please switch to a tenant to access this resource.');
+        }
+
+        const hasRole = authUser.role === TenantRole.ADMIN || authUser.role === TenantRole.OWNER || requiredRoles.includes(authUser.role);
+
+        if (!hasRole) {
+            throw new ForbiddenException('You do not have permission to access this resource. Required roles: ' + requiredRoles.join(', '));
+        }
+
+        return true;
     }
 }

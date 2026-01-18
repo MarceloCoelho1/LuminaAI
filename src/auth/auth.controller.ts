@@ -1,7 +1,11 @@
-import { Body, Controller, Post, Headers, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Post, UnauthorizedException, UseGuards, Req, Get, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { TenantRole } from 'generated/prisma/enums';
+import { RequiredRoles } from './required-roles.decorator';
+import { RoleGuard } from './guards/roles.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -19,15 +23,22 @@ export class AuthController {
   }
 
   @Post('switch-tenant')
-  async switchTenant(@Body() body: { tenantId: string }, @Headers('authorization') authHeader: string) {
-    if (!authHeader) throw new UnauthorizedException('No token provided');
-
-    const token = authHeader.replace('Bearer ', '');
+  @UseGuards(JwtAuthGuard)
+  async switchTenant(@Body() body: { tenantId: string }, @Req() req) {
+    const user = req.user;
     try {
-      const userId = this.authService.getUserIdFromToken(token);
+      const userId = user.userId;
       return await this.authService.switchTenant(userId, body.tenantId);
     } catch (error) {
       throw new UnauthorizedException('Invalid token');
     }
   }
+
+  @Get('roles')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequiredRoles(TenantRole.MEMBER)
+  async testRole(@Req() req) {
+    return HttpStatus.OK
+  }
+
 }
