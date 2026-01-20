@@ -6,6 +6,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { TenantRole } from 'generated/prisma/enums';
 import { RequiredRoles } from './required-roles.decorator';
 import { RoleGuard } from './guards/roles.guard';
+import { AuthUser } from './interfaces/auth-user.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -25,7 +26,7 @@ export class AuthController {
   @Post('switch-tenant')
   @UseGuards(JwtAuthGuard)
   async switchTenant(@Body() body: { tenantId: string }, @Req() req) {
-    const user = req.user;
+    const user = req.user as AuthUser;
     try {
       const userId = user.userId;
       return await this.authService.switchTenant(userId, body.tenantId);
@@ -45,7 +46,8 @@ export class AuthController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async me(@Req() req) {
-    return this.authService.me(req.user.email)
+    const user = req.user as AuthUser;
+    return this.authService.me(user.email)
   }
 
 }
