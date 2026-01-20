@@ -130,4 +130,24 @@ export class AuthService {
         const payload = this.jwtService.verify(token);
         return payload.sub;
     }
+
+    async me(email: string) {
+        const user = await this.prisma.user.findUnique({
+            where: { email },
+            include: {
+                memberships: {
+                    include: {
+                        tenant: true
+                    }
+                }
+            }
+        });
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        const { password, ...result } = user;
+        return result;
+    }
 }

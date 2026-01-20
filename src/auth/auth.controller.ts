@@ -41,4 +41,11 @@ export class AuthController {
     return HttpStatus.OK
   }
 
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async me(@Req() req) {
+    return this.authService.me(req.user.email)
+  }
+
 }

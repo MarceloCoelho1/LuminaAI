@@ -18,65 +18,89 @@ LuminaAI é uma plataforma **Multi-tenant** de orquestração de LLMs (Gemini) q
 ## 🗺️ Roadmap de Desenvolvimento (Checklist Detalhado)
 
 ### 🏗️ Fase 1: Fundação, Multi-tenancy e Auth (RBAC)
-- [ x ] **Setup de Infraestrutura:**
-    - [ x ] Inicializar projeto NestJS.
-    - [ x ] Configurar `docker-compose.yml` (Postgres, Redis, RabbitMQ, Qdrant).
-    - [ x ] Definir Schema Prisma (`User`, `Tenant`, `Member`).
-- [ x ] **Autenticação Avançada:**
-    - [ x ] Implementar `POST /auth/register`: Criar User, Tenant e Member (OWNER) em uma **Prisma Transaction**.
-    - [ x ] Implementar `POST /auth/login`: Retornar JWT com `tenantId` e `role` no payload.
-- [ x ] **Autorização (RBAC):**
-    - [ x ] Criar Decorator `@Roles(TenantRole.ADMIN)`.
-    - [ x ] Criar `RolesGuard` para validar acesso baseado na organização atual.
+- [x] **Setup de Infraestrutura:**
+    - [x] Inicializar projeto NestJS.
+    - [x] Configurar `docker-compose.yml` (Postgres, Redis, RabbitMQ, Qdrant).
+    - [x] Definir Schema Prisma (`User`, `Tenant`, `Member`).
+- [x] **Autenticação Avançada:**
+    - [x] Implementar `POST /auth/register`: Criar User, Tenant e Member (OWNER) em uma transação.
+    - [x] Implementar `POST /auth/login`: Retornar JWT com `tenantId` e `role` no payload.
+- [x] **Autorização & Contexto:**
+    - [x] Criar Decorator `@Roles(TenantRole.ADMIN)`.
+    - [x] Criar `RolesGuard` para validar acesso baseado na organização.
+    - [x] Endpoint `GET /auth/me`: Retornar perfil do usuário e lista de Tenants vinculados.
+    - [x] Endpoint `PATCH /users/switch-tenant`: Rota para o usuário trocar qual organização ele está operando no momento.
+
+### 👥 Fase 2: Gestão de Times e Convites (Team Management)
+- [ ] **Fluxo de Convites:**
+    - [ ] Criar model `Invite` no Prisma (email, tenantId, role, token, expiresAt).
+    - [ ] `POST /tenants/invites`: Admin envia convite para um novo e-mail.
+    - [ ] `GET /tenants/invites`: Listar convites pendentes da organização.
+    - [ ] `DELETE /tenants/invites/:id`: Revogar um convite pendente.
+- [ ] **Adesão de Novos Membros:**
+    - [ ] `POST /auth/invites/accept`: Rota pública para aceitar convite via token.
+    - [ ] Lógica para vincular usuário existente ao novo Tenant ou forçar registro.
+- [ ] **Gestão de Membros Ativos:**
+    - [ ] `GET /tenants/members`: Listar todos os usuários da organização atual.
+    - [ ] `PATCH /tenants/members/:userId`: Alterar Role de um membro (ex: de MEMBER para ADMIN).
+    - [ ] `DELETE /tenants/members/:userId`: Remover um membro da organização.
+
+### 📂 Fase 3: Ingestão de Documentos e Pipeline ETL
+- [ ] **Módulo de Documentos Granular:**
+    - [ ] `POST /documents/upload`: Receber arquivo e salvar metadados como `PENDING`.
+    - [ ] `GET /documents`: Listar documentos do Tenant com paginação e filtro de status.
+    - [ ] `DELETE /documents/:id`: Remover do Postgres e disparar remoção no Qdrant.
+- [ ] **Processamento Assíncrono:**
+    - [ ] Configurar Producer RabbitMQ para evento `document.uploaded`.
+    - [ ] Criar Worker (Consumer) para processamento pesado.
+- [ ] **Integração IA & Vector DB:**
+    - [ ] Implementar lógica de Chunking de texto.
+    - [ ] Gerar Embeddings via Gemini API.
+    - [ ] Upsert no Qdrant com metadados de isolamento (`tenantId`).
+
+### 🧠 Fase 4: Motor de RAG e Chat
+- [ ] **Retrieval & Prompt:**
+    - [ ] Criar Service de busca semântica no Qdrant.
+    - [ ] Implementar `PromptBuilder` para gerir o contexto enviado à LLM.
+- [ ] **Experiência de Chat:**
+    - [ ] `POST /chat`: Endpoint de pergunta e resposta.
+    - [ ] Implementar suporte a **Streaming (SSE)** para respostas em tempo real.
+    - [ ] Armazenar histórico de mensagens por `conversationId`.
+
+### 💳 Fase 5: Monetização, Billing e Créditos
+- [ ] **Integração Stripe:**
+    - [ ] Criar `Customer` no Stripe ao criar um `Tenant`.
+    - [ ] Implementar Webhooks para `checkout.session.completed` e `invoice.paid`.
+- [ ] **Sistema de Cotas:**
+    - [ ] Criar model `Usage` para debito de créditos/tokens.
+    - [ ] `Guard` de cobrança: Bloquear `/chat` se o `Tenant` estiver sem saldo.
+    - [ ] `GET /tenants/usage`: Endpoint para o Admin ver o consumo de créditos.
+
+### 🛡️ Fase 6: Auditoria e Observabilidade (Enterprise Ready)
+- [ ] **Audit Logs:**
+    - [ ] Criar model `AuditLog` (userId, action, targetId, timestamp).
+    - [ ] Implementar um `Global Interceptor` para registrar ações críticas (Delete, Invite, Update Role).
+    - [ ] `GET /tenants/audit-logs`: Visualização para o OWNER da organização.
+- [ ] **Health & Quality:**
+    - [ ] Implementar `Terminus` para Health Checks (DB, Redis, RabbitMQ).
+    - [ ] Configurar logs estruturados com `Pino`.
+
+---
+
+## 📐 Decisões de Arquitetura (ADRs)
 
 
-### 📂 Fase 2: Ingestão de Documentos e Pipeline de Dados (ETL)
-- [ ] **Módulo de Documentos:**
-    - [ ] CRUD de documentos com status (PENDING, PROCESSING, COMPLETED, FAILED).
-    - [ ] Integração com armazenamento (Multer para local ou AWS S3 para prod).
-- [ ] **Processamento Assíncrono (RabbitMQ):**
-    - [ ] Configurar Producer no NestJS para disparar evento `document.uploaded`.
-    - [ ] Criar Worker independente para consumir a fila de indexação.
-- [ ] **Integração com IA (Embeddings):**
-    - [ ] Implementar lógica de **Chunking** (quebra de texto em pedaços menores).
-    - [ ] Consumir API do Gemini para gerar vetores (embeddings) dos chunks.
-    - [ ] Persistir vetores no **Qdrant** com metadados (`tenantId`, `docId`).
 
-### 🧠 Fase 3: Motor de RAG (Chat Inteligente)
-- [ ] **Retrieval Service:**
-    - [ ] Implementar busca por similaridade no Qdrant baseada na pergunta do usuário.
-    - [ ] Filtro obrigatório de `tenantId` no banco de vetores (Isolamento de dados).
-- [ ] **Orquestração de LLM:**
-    - [ ] Criar `PromptBuilder` para injetar contexto recuperado.
-    - [ ] Implementar endpoint de Chat com suporte a **Streaming (Server-Sent Events)**.
-- [ ] **Histórico:**
-    - [ ] Salvar logs de conversas para auditoria e contexto de memória curta.
-
-### 💳 Fase 4: Monetização e Modelo SaaS
-- [ ] **Billing com Stripe:**
-    - [ ] Criar Clientes no Stripe automaticamente no registro do Tenant.
-    - [ ] Implementar Webhooks para processar pagamentos e assinaturas.
-- [ ] **Controle de Créditos:**
-    - [ ] Implementar sistema de "Wallet" de créditos por Tenant.
-    - [ ] Criar `Guard` que bloqueia uso da IA se o saldo de créditos for insuficiente.
-    - [ ] Lógica de contagem de tokens após cada resposta da IA.
-
-### 🧪 Fase 5: Qualidade e Operação
-- [ ] **Testes:**
-    - [ ] Testes unitários para lógica de créditos e permissões.
-    - [ ] Testes de integração usando **Testcontainers**.
-- [ ] **Observabilidade:**
-    - [ ] Logs estruturados com `Pino` ou `Winston`.
-    - [ ] Endpoint de `/health` para monitoramento.
+1. **Logical Isolation:** O isolamento de dados é feito via `tenantId` em todas as tabelas (Shared Database, Separate Schemas logically).
+2. **Eventual Consistency:** A indexação de documentos é assíncrona. O usuário recebe um status `PROCESSING` até que o Worker confirme o sucesso.
+3. **Stateless Auth:** O JWT carrega o `tenantId` ativo, mas o Redis valida se aquele token ainda é válido ou se foi revogado (ex: após remoção do membro).
 
 ---
 
 ## 🚀 Como Iniciar
 
 1. Clone o repositório.
-2. Copie o arquivo `.env.example` para `.env` e preencha as chaves (Gemini, Stripe).
-3. Suba a infraestrutura: `docker-compose up -d`.
-4. Execute as migrações: `npx prisma migrate dev`.
-5. Inicie a aplicação: `npm run start:dev`.
-
----
+2. Configure o `.env` seguindo o `.env.example`.
+3. Suba a infra: `docker-compose up -d`.
+4. `npx prisma migrate dev`
+5. `npm run start:dev`
