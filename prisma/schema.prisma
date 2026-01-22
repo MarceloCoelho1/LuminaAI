@@ -22,14 +22,16 @@ enum TenantRole {
 }
 
 model User {
-  id          String   @id @default(uuid())
-  email       String   @unique
-  password    String
-  name        String
-  lastName    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  memberships Member[]
+  id              String   @id @default(uuid())
+  email           String   @unique
+  password        String
+  name            String
+  lastName        String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  memberships     Member[]
+  sentInvites     Invite[] @relation("SentInvites")
+  receivedInvites Invite[] @relation("ReceivedInvites")
 
   @@map("users")
 }
@@ -46,6 +48,7 @@ model Tenant {
   credits          Int     @default(0)
 
   members Member[]
+  invites Invite[]
 
   @@map("tenants")
 }
@@ -63,4 +66,29 @@ model Member {
 
   @@unique([userId, tenantId])
   @@map("members")
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Invite {
+  id        String       @id @default(uuid())
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  status    InviteStatus @default(PENDING)
+  role      TenantRole   @default(MEMBER)
+
+  userId   String
+  tenantId String
+
+  user   User   @relation("ReceivedInvites", fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  inviterId String?
+  inviter   User?   @relation("SentInvites", fields: [inviterId], references: [id])
+
+  @@map("invites")
 }

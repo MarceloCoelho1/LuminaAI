@@ -25,11 +25,11 @@ LuminaAI é uma plataforma **Multi-tenant** de orquestração de LLMs (Gemini) q
 - [x] **Autenticação Avançada:**
     - [x] Implementar `POST /auth/register`: Criar User, Tenant e Member (OWNER) em uma transação.
     - [x] Implementar `POST /auth/login`: Retornar JWT com `tenantId` e `role` no payload.
-- [x] **Autorização & Contexto:**
+- [ ] **Autorização & Contexto:**
     - [x] Criar Decorator `@Roles(TenantRole.ADMIN)`.
     - [x] Criar `RolesGuard` para validar acesso baseado na organização.
     - [x] Endpoint `GET /auth/me`: Retornar perfil do usuário e lista de Tenants vinculados.
-    - [x] Endpoint `PATCH /users/switch-tenant`: Rota para o usuário trocar qual organização ele está operando no momento.
+    - [x] Endpoint `PATCH /auth/switch-tenant`: Rota para o usuário trocar qual organização ele está operando no momento.
 
 ### 👥 Fase 2: Gestão de Times e Convites (Team Management)
 - [ ] **Fluxo de Convites:**
@@ -86,21 +86,3 @@ LuminaAI é uma plataforma **Multi-tenant** de orquestração de LLMs (Gemini) q
     - [ ] Configurar logs estruturados com `Pino`.
 
 ---
-
-## 📐 Decisões de Arquitetura (ADRs)
-
-
-
-1. **Logical Isolation:** O isolamento de dados é feito via `tenantId` em todas as tabelas (Shared Database, Separate Schemas logically).
-2. **Eventual Consistency:** A indexação de documentos é assíncrona. O usuário recebe um status `PROCESSING` até que o Worker confirme o sucesso.
-3. **Stateless Auth:** O JWT carrega o `tenantId` ativo, mas o Redis valida se aquele token ainda é válido ou se foi revogado (ex: após remoção do membro).
-
----
-
-## 🚀 Como Iniciar
-
-1. Clone o repositório.
-2. Configure o `.env` seguindo o `.env.example`.
-3. Suba a infra: `docker-compose up -d`.
-4. `npx prisma migrate dev`
-5. `npm run start:dev`
