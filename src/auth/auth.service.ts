@@ -1,29 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { LoginDto } from './dto/login.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { RegisterDto } from './dto/register.dto';
-import { TenantRole } from 'generated/prisma/client';
+import type { IUsersRepository } from 'src/users/repository/users.repository.interface';
 
 @Injectable()
 export class AuthService {
     constructor(
         private prisma: PrismaService,
-        private jwtService: JwtService
+        private jwtService: JwtService,
+        @Inject('IUsersRepository')
+        private usersRepository: IUsersRepository
     ) { }
 
     async login(loginDto: LoginDto) {
-        const user = await this.prisma.user.findUnique({
-            where: { email: loginDto.email },
-            include: {
-                memberships: {
-                    include: {
-                        tenant: true
-                    }
-                }
-            }
-        });
+        const user = await this.usersRepository.findUserWithTenants(loginDto.email);
 
         if (!user) {
             throw new Error('Invalid Credentials');
@@ -50,9 +43,7 @@ export class AuthService {
 
 
     async register(registerDto: RegisterDto) {
-        const existingUser = await this.prisma.user.findUnique({
-            where: { email: registerDto.email },
-        });
+        const existingUser = await this.usersRepository.findByEmail(registerDto.email);
 
         if (existingUser) {
             throw new Error('User already exists');
@@ -60,38 +51,25 @@ export class AuthService {
 
         const hashedPassword = bcrypt.hashSync(registerDto.password, 10);
 
-        this.prisma.$transaction(async (tx) => {
-            const user = await tx.user.create({
-                data: {
-                    email: registerDto.email,
-                    name: registerDto.name,
-                    lastName: registerDto.lastName,
-                    password: hashedPassword,
-                },
-            });
+        const user = await this.usersRepository.createWithTenant({
+            user: {
+                email: registerDto.email,
+                name: registerDto.name,
+                lastName: registerDto.lastName,
+                password: hashedPassword,
+            },
+            tenant: {
+                name: registerDto.tenantName,
+                slug: registerDto.tenantSlug,
+            }
+        });
 
-            const tenant = await tx.tenant.create({
-                data: {
-                    name: registerDto.tenantName,
-                    slug: registerDto.tenantSlug,
-                }
-            })
-
-            const member = await tx.member.create({
-                data: {
-                    userId: user.id,
-                    tenantId: tenant.id,
-                    role: TenantRole.OWNER,
-                }
-            })
-
-            return {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                message: 'User registered successfully'
-            };
-        })
+        return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            message: 'User registered successfully'
+        };
     }
 
     async switchTenant(userId: string, tenantId: string) {
@@ -132,16 +110,7 @@ export class AuthService {
     }
 
     async me(email: string) {
-        const user = await this.prisma.user.findUnique({
-            where: { email },
-            include: {
-                memberships: {
-                    include: {
-                        tenant: true
-                    }
-                }
-            }
-        });
+        const user = await this.usersRepository.findUserWithTenants(email);
 
         if (!user) {
             throw new Error('User not found');
