@@ -34,7 +34,7 @@ LuminaAI é uma plataforma **Multi-tenant** de orquestração de LLMs (Gemini) q
 ### 👥 Fase 2: Gestão de Times e Convites (Team Management)
 - [ ] **Fluxo de Convites:**
     - [x] Criar model `Invite` no Prisma (email, tenantId, role, token, expiresAt).
-    - [ ] `POST /tenants/invites`: Admin envia convite para um novo e-mail.
+    - [x] `POST /tenants/invites`: Admin envia convite para um novo e-mail.
     - [ ] `GET /tenants/invites`: Listar convites pendentes da organização.
     - [ ] `DELETE /tenants/invites/:id`: Revogar um convite pendente.
 - [ ] **Adesão de Novos Membros:**
