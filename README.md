@@ -25,7 +25,7 @@ LuminaAI é uma plataforma **Multi-tenant** de orquestração de LLMs (Gemini) q
 - [x] **Autenticação Avançada:**
     - [x] Implementar `POST /auth/register`: Criar User, Tenant e Member (OWNER) em uma transação.
     - [x] Implementar `POST /auth/login`: Retornar JWT com `tenantId` e `role` no payload.
-- [ ] **Autorização & Contexto:**
+- [x] **Autorização & Contexto:**
     - [x] Criar Decorator `@Roles(TenantRole.ADMIN)`.
     - [x] Criar `RolesGuard` para validar acesso baseado na organização.
     - [x] Endpoint `GET /auth/me`: Retornar perfil do usuário e lista de Tenants vinculados.
@@ -33,7 +33,7 @@ LuminaAI é uma plataforma **Multi-tenant** de orquestração de LLMs (Gemini) q
 
 ### 👥 Fase 2: Gestão de Times e Convites (Team Management)
 - [ ] **Fluxo de Convites:**
-    - [ ] Criar model `Invite` no Prisma (email, tenantId, role, token, expiresAt).
+    - [x] Criar model `Invite` no Prisma (email, tenantId, role, token, expiresAt).
     - [ ] `POST /tenants/invites`: Admin envia convite para um novo e-mail.
     - [ ] `GET /tenants/invites`: Listar convites pendentes da organização.
     - [ ] `DELETE /tenants/invites/:id`: Revogar um convite pendente.
