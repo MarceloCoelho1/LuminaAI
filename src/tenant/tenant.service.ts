@@ -32,6 +32,10 @@ export class TenantService {
     return `This action removes a #${id} tenant`;
   }
 
+  async findAllInvites(userId: string) {
+    return this.tenantRepository.findAllInvites(userId);
+  }
+
   async invite(inviteDto: InviteDto, inviterId: string) {
     const { invitedUserEmail, tenantId, role } = inviteDto;
 

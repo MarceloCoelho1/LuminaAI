@@ -25,6 +25,13 @@ export class TenantController {
     return this.tenantService.invite(inviteDto, user.userId);
   }
 
+  @Get('/invites')
+  @UseGuards(JwtAuthGuard)
+  findAllInvites(@Req() req) {
+    const user = req.user as AuthUser
+    return this.tenantService.findAllInvites(user.userId);
+  }
+
   @Get()
   findAll() {
     return this.tenantService.findAll();

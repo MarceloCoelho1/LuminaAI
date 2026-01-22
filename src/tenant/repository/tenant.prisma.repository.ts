@@ -34,4 +34,12 @@ export class TenantPrismaRepository implements ITenantRepository {
             }
         });
     }
+
+    async findAllInvites(userId: string): Promise<Invite[]> {
+        return this.prisma.invite.findMany({
+            where: {
+                userId
+            }
+        });
+    }
 }

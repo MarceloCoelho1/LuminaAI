@@ -20,4 +20,5 @@ export interface ITenantRepository {
     invite(data: CreateInviteInput): Promise<Invite>;
     findInvite(userId: string, tenantId: string): Promise<Invite | null>;
     findMember(userId: string, tenantId: string): Promise<Member | null>;
+    findAllInvites(userId: string): Promise<Invite[]>;
 }
