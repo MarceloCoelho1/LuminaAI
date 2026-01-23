@@ -32,13 +32,13 @@ LuminaAI é uma plataforma **Multi-tenant** de orquestração de LLMs (Gemini) q
     - [x] Endpoint `PATCH /auth/switch-tenant`: Rota para o usuário trocar qual organização ele está operando no momento.
 
 ### 👥 Fase 2: Gestão de Times e Convites (Team Management)
-- [ ] **Fluxo de Convites:**
+- [x] **Fluxo de Convites:**
     - [x] Criar model `Invite` no Prisma (email, tenantId, role, token, expiresAt).
     - [x] `POST /tenants/invites`: Admin envia convite para um novo e-mail.
     - [x] `GET /tenants/invites`: Listar convites pendentes da organização.
-    - [ ] `DELETE /tenants/invites/:id`: Revogar um convite pendente.
+    - [x] `DELETE /tenants/invites/:id`: Revogar um convite pendente.
 - [ ] **Adesão de Novos Membros:**
-    - [ ] `POST /tenants/invites/accept`: Rota pública para aceitar convite via token.
+    - [x] `POST /tenants/invites/accept`: Rota pública para aceitar convite via token.
     - [ ] `POST /tenants/invites/decline`: Rota pública para recusar convite via token.
 - [ ] **Gestão de Membros Ativos:**
     - [ ] `GET /tenants/members`: Listar todos os usuários da organização atual.

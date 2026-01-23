@@ -32,6 +32,21 @@ export class TenantController {
     return this.tenantService.findAllInvites(user.userId);
   }
 
+  @Delete('/invites/:id')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequiredRoles('ADMIN')
+  deleteInvite(@Param('id') id: string, @Req() req) {
+    const user = req.user as AuthUser;
+    return this.tenantService.deleteInvite(id, user.userId);
+  }
+
+  @Post('/invites/accept/:id')
+  @UseGuards(JwtAuthGuard)
+  acceptInvite(@Param('id') id: string, @Req() req) {
+    const user = req.user as AuthUser
+    return this.tenantService.acceptInvite(id, user.userId);
+  }
+
   @Get()
   findAll() {
     return this.tenantService.findAll();

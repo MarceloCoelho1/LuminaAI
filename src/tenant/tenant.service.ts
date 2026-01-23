@@ -1,4 +1,4 @@
-import { Inject, Injectable, ConflictException } from '@nestjs/common';
+import { Inject, Injectable, ConflictException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { InviteDto } from './dto/invite-tenant.dto';
@@ -36,24 +36,66 @@ export class TenantService {
     return this.tenantRepository.findAllInvites(userId);
   }
 
+  async deleteInvite(id: string, userId: string) {
+    const invite = await this.tenantRepository.findInviteById(id);
+
+    if (!invite) {
+      throw new NotFoundException('Invite not found');
+    }
+
+    await this.validateInviterMembership(userId, invite.tenantId);
+
+    try {
+      return await this.tenantRepository.deleteInvite(id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async acceptInvite(id: string, userId: string) {
+    const invite = await this.tenantRepository.findInviteById(id);
+
+    if (!invite) {
+      throw new NotFoundException('Invite not found');
+    }
+
+    if (invite.userId !== userId) {
+      throw new ForbiddenException('Invite not found');
+    }
+
+    if (invite.status !== 'PENDING') {
+      throw new ConflictException('Invite is no longer valid');
+    }
+
+    const existingMember = await this.tenantRepository.findMember(userId, invite.tenantId);
+
+    if (existingMember) {
+      throw new ConflictException('You are already a member of this tenant');
+    }
+
+    return await this.tenantRepository.acceptInvite(id);
+  }
+
   async invite(inviteDto: InviteDto, inviterId: string) {
     const { invitedUserEmail, tenantId, role } = inviteDto;
 
+    await this.validateInviterMembership(inviterId, tenantId);
+
     const userInvited = await this.prisma.user.findUnique({ where: { email: invitedUserEmail } });
     if (!userInvited) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
 
     const tenant = await this.prisma.tenant.findUnique({ where: { id: tenantId } });
 
     if (!tenant) {
-      throw new Error('Tenant not found');
+      throw new NotFoundException('Tenant not found');
     }
 
     const inviter = await this.prisma.user.findUnique({ where: { id: inviterId } });
 
     if (!inviter) {
-      throw new Error('Inviter not found');
+      throw new NotFoundException('Inviter not found');
     }
 
     if (userInvited.id === inviter.id) {
@@ -78,5 +120,13 @@ export class TenantService {
       inviterId,
       role,
     });
+  }
+
+  private async validateInviterMembership(inviterId: string, tenantId: string) {
+    const inviterMembership = await this.tenantRepository.findMember(inviterId, tenantId);
+
+    if (!inviterMembership) {
+      throw new ForbiddenException('Tenant Not Found');
+    }
   }
 }

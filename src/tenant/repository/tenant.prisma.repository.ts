@@ -24,6 +24,12 @@ export class TenantPrismaRepository implements ITenantRepository {
         });
     }
 
+    async findInviteById(id: string): Promise<Invite | null> {
+        return this.prisma.invite.findUnique({
+            where: { id }
+        });
+    }
+
     async findMember(userId: string, tenantId: string): Promise<Member | null> {
         return this.prisma.member.findUnique({
             where: {
@@ -40,6 +46,33 @@ export class TenantPrismaRepository implements ITenantRepository {
             where: {
                 userId
             }
+        });
+    }
+
+    async deleteInvite(id: string): Promise<Invite> {
+        return this.prisma.invite.delete({ where: { id } });
+    }
+
+    async acceptInvite(id: string): Promise<Member> {
+        return this.prisma.$transaction(async (tx) => {
+            const invite = await tx.invite.findUniqueOrThrow({
+                where: { id }
+            });
+
+            const member = await tx.member.create({
+                data: {
+                    userId: invite.userId,
+                    tenantId: invite.tenantId,
+                    role: invite.role
+                }
+            });
+
+            await tx.invite.update({
+                where: { id },
+                data: { status: 'ACCEPTED' }
+            });
+
+            return member;
         });
     }
 }
