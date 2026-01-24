@@ -49,6 +49,20 @@ export class TenantController {
     return this.tenantService.updateMemberRole(memberId, updateMemberRoleDto, user.userId);
   }
 
+  @Delete('/members/:memberId')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequiredRoles('OWNER', 'ADMIN')
+  deleteMember(@Param('memberId') memberId: string, @Req() req) {
+    const user = req.user as AuthUser;
+    if (!user.tenantId) {
+      throw new ForbiddenException('Tenant ID not found');
+    }
+    if (!user.role) {
+      throw new ForbiddenException('Role not found');
+    }
+    return this.tenantService.deleteMember(memberId, user.tenantId, user.userId, user.role);
+  }
+
   @Get('/members')
   @UseGuards(JwtAuthGuard, RoleGuard)
   @RequiredRoles('OWNER', 'ADMIN', 'MEMBER')

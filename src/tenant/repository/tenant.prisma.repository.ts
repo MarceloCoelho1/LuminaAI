@@ -116,4 +116,15 @@ export class TenantPrismaRepository implements ITenantRepository {
             }
         });
     }
+
+    async deleteMember(memberId: string, tenantId: string): Promise<Member> {
+        return this.prisma.member.delete({
+            where: {
+                userId_tenantId: {
+                    userId: memberId,
+                    tenantId
+                }
+            }
+        });
+    }
 }

@@ -60,6 +60,35 @@ export class TenantService {
     return this.tenantRepository.updateMemberRole(memberId, updateMemberRole);
   }
 
+  async deleteMember(memberId: string, tenantId: string, userId: string, userRole: string) {
+    const member = await this.tenantRepository.findMember(memberId, tenantId);
+
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+
+    if (memberId === userId) {
+      throw new ForbiddenException('You cannot delete yourself');
+    }
+
+    if (member.role === 'OWNER') {
+      throw new ForbiddenException('You cannot delete the owner');
+    }
+
+    if (userRole === 'OWNER') {
+      return this.tenantRepository.deleteMember(memberId, tenantId);
+    }
+
+    if (userRole === 'ADMIN') {
+      if (member.role === 'ADMIN') {
+        throw new ForbiddenException('Admins cannot delete other Admins');
+      }
+      return this.tenantRepository.deleteMember(memberId, tenantId);
+    }
+
+    throw new ForbiddenException('You do not have permission to delete members');
+  }
+
   async deleteInvite(id: string, userId: string) {
     const invite = await this.tenantRepository.findInviteById(id);
 

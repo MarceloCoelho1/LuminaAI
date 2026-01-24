@@ -40,10 +40,10 @@ LuminaAI é uma plataforma **Multi-tenant** de orquestração de LLMs (Gemini) q
 - [x] **Adesão de Novos Membros:**
     - [x] `POST /tenants/invites/accept`: Rota pública para aceitar convite via token.
     - [x] `POST /tenants/invites/decline`: Rota pública para recusar convite via token.
-- [ ] **Gestão de Membros Ativos:**
+- [x] **Gestão de Membros Ativos:**
     - [x] `GET /tenants/members`: Listar todos os usuários da organização atual.
     - [x] `PATCH /tenants/members/:userId`: Alterar Role de um membro (ex: de MEMBER para ADMIN).
-    - [ ] `DELETE /tenants/members/:userId`: Remover um membro da organização.
+    - [x] `DELETE /tenants/members/:userId`: Remover um membro da organização.
 
 ### 📂 Fase 3: Ingestão de Documentos e Pipeline ETL
 - [ ] **Módulo de Documentos Granular:**
