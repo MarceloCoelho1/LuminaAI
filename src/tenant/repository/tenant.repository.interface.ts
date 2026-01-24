@@ -1,4 +1,5 @@
 import { Tenant, Invite, TenantRole, Member } from "generated/prisma/client";
+import { UpdateMemberRoleDto } from "../dto/update-member-role.dto";
 
 export type CreateTenantInput = {
     name: string;
@@ -26,4 +27,5 @@ export interface ITenantRepository {
     acceptInvite(id: string): Promise<Member>;
     declineInvite(id: string): Promise<Invite>;
     getTenantMembers(tenantId: string): Promise<Member[]>;
+    updateMemberRole(memberId: string, updateMemberRole: UpdateMemberRoleDto): Promise<Member>;
 }

@@ -7,6 +7,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RoleGuard } from 'src/auth/guards/roles.guard';
 import { RequiredRoles } from 'src/auth/required-roles.decorator';
 import { AuthUser } from 'src/auth/interfaces/auth-user.interface';
+import { UpdateMemberRoleDto } from './dto/update-member-role.dto';
 
 @Controller('tenant')
 export class TenantController {
@@ -38,6 +39,14 @@ export class TenantController {
   deleteInvite(@Param('id') id: string, @Req() req) {
     const user = req.user as AuthUser;
     return this.tenantService.deleteInvite(id, user.userId);
+  }
+
+  @Patch('/members/:memberId')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequiredRoles('OWNER', 'ADMIN')
+  updateMemberRole(@Param('memberId') memberId: string, @Body() updateMemberRoleDto: UpdateMemberRoleDto, @Req() req) {
+    const user = req.user as AuthUser;
+    return this.tenantService.updateMemberRole(memberId, updateMemberRoleDto, user.userId);
   }
 
   @Get('/members')

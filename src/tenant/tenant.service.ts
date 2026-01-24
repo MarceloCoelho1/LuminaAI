@@ -4,6 +4,7 @@ import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { InviteDto } from './dto/invite-tenant.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import type { ITenantRepository } from './repository/tenant.repository.interface';
+import { UpdateMemberRoleDto } from './dto/update-member-role.dto';
 
 @Injectable()
 export class TenantService {
@@ -38,6 +39,25 @@ export class TenantService {
 
   async getTenantMembers(tenantId: string) {
     return this.tenantRepository.getTenantMembers(tenantId);
+  }
+
+  async updateMemberRole(memberId: string, updateMemberRole: UpdateMemberRoleDto, userId: string) {
+
+    const member = await this.tenantRepository.findMember(memberId, updateMemberRole.tenantId);
+
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+
+    if (memberId === userId) {
+      throw new ForbiddenException('You cannot update your own role');
+    }
+
+    if (member.role === 'OWNER') {
+      throw new ForbiddenException('You cannot update the role of the owner');
+    }
+
+    return this.tenantRepository.updateMemberRole(memberId, updateMemberRole);
   }
 
   async deleteInvite(id: string, userId: string) {

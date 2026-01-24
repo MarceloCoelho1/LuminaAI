@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ITenantRepository, CreateTenantInput, CreateInviteInput } from './tenant.repository.interface';
 import { Tenant, Invite, Member } from 'generated/prisma/client';
+import { UpdateMemberRoleDto } from '../dto/update-member-role.dto';
 
 @Injectable()
 export class TenantPrismaRepository implements ITenantRepository {
@@ -98,6 +99,20 @@ export class TenantPrismaRepository implements ITenantRepository {
                         updatedAt: true
                     }
                 }
+            }
+        });
+    }
+
+    async updateMemberRole(memberId: string, updateMemberRole: UpdateMemberRoleDto): Promise<Member> {
+        return this.prisma.member.update({
+            where: {
+                userId_tenantId: {
+                    userId: memberId,
+                    tenantId: updateMemberRole.tenantId
+                }
+            },
+            data: {
+                role: updateMemberRole.role
             }
         });
     }
