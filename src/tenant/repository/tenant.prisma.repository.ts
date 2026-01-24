@@ -82,4 +82,23 @@ export class TenantPrismaRepository implements ITenantRepository {
             data: { status: 'REJECTED' }
         });
     }
+
+    async getTenantMembers(tenantId: string): Promise<Member[]> {
+        return await this.prisma.member.findMany({
+            where: {
+                tenantId
+            }, include: {
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        name: true,
+                        lastName: true,
+                        createdAt: true,
+                        updatedAt: true
+                    }
+                }
+            }
+        });
+    }
 }

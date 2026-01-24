@@ -36,6 +36,10 @@ export class TenantService {
     return this.tenantRepository.findAllInvites(userId);
   }
 
+  async getTenantMembers(tenantId: string) {
+    return this.tenantRepository.getTenantMembers(tenantId);
+  }
+
   async deleteInvite(id: string, userId: string) {
     const invite = await this.tenantRepository.findInviteById(id);
 

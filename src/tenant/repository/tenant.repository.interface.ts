@@ -25,4 +25,5 @@ export interface ITenantRepository {
     deleteInvite(id: string): Promise<Invite>;
     acceptInvite(id: string): Promise<Member>;
     declineInvite(id: string): Promise<Invite>;
+    getTenantMembers(tenantId: string): Promise<Member[]>;
 }

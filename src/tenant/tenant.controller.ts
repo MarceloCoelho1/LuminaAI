@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, ForbiddenException } from '@nestjs/common';
 import { TenantService } from './tenant.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
@@ -18,7 +18,7 @@ export class TenantController {
   }
 
   @UseGuards(JwtAuthGuard, RoleGuard)
-  @RequiredRoles('ADMIN')
+  @RequiredRoles('OWNER', 'ADMIN')
   @Post('/invites')
   invite(@Body() inviteDto: InviteDto, @Req() req) {
     const user = req.user as AuthUser
@@ -34,10 +34,22 @@ export class TenantController {
 
   @Delete('/invites/:id')
   @UseGuards(JwtAuthGuard, RoleGuard)
-  @RequiredRoles('ADMIN')
+  @RequiredRoles('OWNER', 'ADMIN')
   deleteInvite(@Param('id') id: string, @Req() req) {
     const user = req.user as AuthUser;
     return this.tenantService.deleteInvite(id, user.userId);
+  }
+
+  @Get('/members')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequiredRoles('OWNER', 'ADMIN', 'MEMBER')
+  getTenantMembers(@Req() req) {
+    const user = req.user as AuthUser;
+
+    if (!user.tenantId) {
+      throw new ForbiddenException('Tenant ID not found');
+    }
+    return this.tenantService.getTenantMembers(user.tenantId);
   }
 
   @Post('/invites/accept/:id')
