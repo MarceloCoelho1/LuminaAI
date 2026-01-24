@@ -37,9 +37,9 @@ LuminaAI é uma plataforma **Multi-tenant** de orquestração de LLMs (Gemini) q
     - [x] `POST /tenants/invites`: Admin envia convite para um novo e-mail.
     - [x] `GET /tenants/invites`: Listar convites pendentes da organização.
     - [x] `DELETE /tenants/invites/:id`: Revogar um convite pendente.
-- [ ] **Adesão de Novos Membros:**
+- [x] **Adesão de Novos Membros:**
     - [x] `POST /tenants/invites/accept`: Rota pública para aceitar convite via token.
-    - [ ] `POST /tenants/invites/decline`: Rota pública para recusar convite via token.
+    - [x] `POST /tenants/invites/decline`: Rota pública para recusar convite via token.
 - [ ] **Gestão de Membros Ativos:**
     - [ ] `GET /tenants/members`: Listar todos os usuários da organização atual.
     - [ ] `PATCH /tenants/members/:userId`: Alterar Role de um membro (ex: de MEMBER para ADMIN).

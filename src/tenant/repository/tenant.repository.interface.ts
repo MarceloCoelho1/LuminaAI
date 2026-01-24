@@ -24,4 +24,5 @@ export interface ITenantRepository {
     findAllInvites(userId: string): Promise<Invite[]>;
     deleteInvite(id: string): Promise<Invite>;
     acceptInvite(id: string): Promise<Member>;
+    declineInvite(id: string): Promise<Invite>;
 }

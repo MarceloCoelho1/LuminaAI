@@ -76,6 +76,24 @@ export class TenantService {
     return await this.tenantRepository.acceptInvite(id);
   }
 
+  async declineInvite(id: string, userId: string) {
+    const invite = await this.tenantRepository.findInviteById(id);
+
+    if (!invite) {
+      throw new NotFoundException('Invite not found');
+    }
+
+    if (invite.userId !== userId) {
+      throw new ForbiddenException('Invite not found');
+    }
+
+    if (invite.status !== 'PENDING') {
+      throw new ConflictException('Invite is no longer valid');
+    }
+
+    return await this.tenantRepository.declineInvite(id);
+  }
+
   async invite(inviteDto: InviteDto, inviterId: string) {
     const { invitedUserEmail, tenantId, role } = inviteDto;
 

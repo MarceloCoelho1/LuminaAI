@@ -75,4 +75,11 @@ export class TenantPrismaRepository implements ITenantRepository {
             return member;
         });
     }
+
+    async declineInvite(id: string): Promise<Invite> {
+        return this.prisma.invite.update({
+            where: { id },
+            data: { status: 'REJECTED' }
+        });
+    }
 }
