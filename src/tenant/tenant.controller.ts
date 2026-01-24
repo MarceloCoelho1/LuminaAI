@@ -47,6 +47,13 @@ export class TenantController {
     return this.tenantService.acceptInvite(id, user.userId);
   }
 
+  @Post('/invites/decline/:id')
+  @UseGuards(JwtAuthGuard)
+  declineInvite(@Param('id') id: string, @Req() req) {
+    const user = req.user as AuthUser
+    return this.tenantService.declineInvite(id, user.userId);
+  }
+
   @Get()
   findAll() {
     return this.tenantService.findAll();
