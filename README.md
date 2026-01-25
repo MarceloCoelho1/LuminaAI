@@ -45,18 +45,30 @@ LuminaAI é uma plataforma **Multi-tenant** de orquestração de LLMs (Gemini) q
     - [x] `PATCH /tenants/members/:userId`: Alterar Role de um membro (ex: de MEMBER para ADMIN).
     - [x] `DELETE /tenants/members/:userId`: Remover um membro da organização.
 
-### 📂 Fase 3: Ingestão de Documentos e Pipeline ETL
-- [ ] **Módulo de Documentos Granular:**
-    - [ ] `POST /documents/upload`: Receber arquivo e salvar metadados como `PENDING`.
-    - [ ] `GET /documents`: Listar documentos do Tenant com paginação e filtro de status.
-    - [ ] `DELETE /documents/:id`: Remover do Postgres e disparar remoção no Qdrant.
-- [ ] **Processamento Assíncrono:**
-    - [ ] Configurar Producer RabbitMQ para evento `document.uploaded`.
-    - [ ] Criar Worker (Consumer) para processamento pesado.
-- [ ] **Integração IA & Vector DB:**
-    - [ ] Implementar lógica de Chunking de texto.
-    - [ ] Gerar Embeddings via Gemini API.
-    - [ ] Upsert no Qdrant com metadados de isolamento (`tenantId`).
+### 📂 Fase 3: Ingestão de Documentos e Pipeline ETL (Extração, Transformação e Carga)
+
+- [ ] **Módulo de Armazenamento (Storage):**
+    - [ ] Implementar `DocumentsModule` para gestão de metadados.
+    - [ ] Configurar **Multer** no NestJS para recebimento de arquivos (PDF/TXT).
+    - [ ] Integrar com **MinIO** (via S3 SDK) para persistência de arquivos em ambiente Docker, garantindo paridade com produção (AWS S3).
+    - [ ] Criar endpoint `POST /documents/upload` com validação de MIME type e limite de tamanho.
+
+- [ ] **Arquitetura de Mensageria (RabbitMQ):**
+    - [ ] Configurar um **Microservice Transporter** no NestJS para o RabbitMQ.
+    - [ ] Criar o `DocumentProducer`: Assim que o arquivo for salvo no Storage, disparar um evento `document.uploaded` contendo o `documentId` e `tenantId`.
+    - [ ] Implementar filas com **DLQ (Dead Letter Queues)** para tratar falhas em arquivos corrompidos ou erros de API externa.
+
+- [ ] **Worker de Processamento (The Ingestor):**
+    - [ ] Criar um **Consumer** dedicado para processar a fila em segundo plano.
+    - [ ] **Extração:** Utilizar `pdf-parse` ou bibliotecas similares para extrair texto limpo.
+    - [ ] **Splitting/Chunking:** Implementar `RecursiveCharacterTextSplitter` (LangChain) para dividir o texto em pedaços lógicos (ex: 1000 tokens com 20% de overlap).
+    - [ ] **Isolamento Multi-tenant:** Garantir que cada fragmento de texto carregue o `tenantId` nos metadados.
+
+- [ ] **Integração com Vector DB & Gemini:**
+    - [ ] Consumir a API de **Embeddings do Gemini** (`text-embedding-004`) para converter chunks de texto em vetores de 768 dimensões (ou similar).
+    - [ ] **Qdrant Integration:** Criar coleções no Qdrant e realizar o `upsert` dos vetores.
+    - [ ] Implementar o **Payload do Vetor**: O Qdrant deve armazenar o vetor + metadados (texto original, `docId`, `pageNumber`, `tenantId`).
+    - [ ] Atualizar o status do documento no PostgreSQL para `COMPLETED` após a indexação.
 
 ### 🧠 Fase 4: Motor de RAG e Chat
 - [ ] **Retrieval & Prompt:**
