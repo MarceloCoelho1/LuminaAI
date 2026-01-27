@@ -47,11 +47,11 @@ LuminaAI é uma plataforma **Multi-tenant** de orquestração de LLMs (Gemini) q
 
 ### 📂 Fase 3: Ingestão de Documentos e Pipeline ETL (Extração, Transformação e Carga)
 
-- [ ] **Módulo de Armazenamento (Storage):**
-    - [ ] Implementar `DocumentsModule` para gestão de metadados.
-    - [ ] Configurar **Multer** no NestJS para recebimento de arquivos (PDF/TXT).
-    - [ ] Integrar com **MinIO** (via S3 SDK) para persistência de arquivos em ambiente Docker, garantindo paridade com produção (AWS S3).
-    - [ ] Criar endpoint `POST /documents/upload` com validação de MIME type e limite de tamanho.
+- [x] **Módulo de Armazenamento (Storage):**
+    - [x] Implementar `DocumentsModule` para gestão de metadados.
+    - [x] Configurar **Multer** no NestJS para recebimento de arquivos (PDF/TXT).
+    - [x] Integrar com **MinIO** (via S3 SDK) para persistência de arquivos em ambiente Docker, garantindo paridade com produção (AWS S3).
+    - [x] Criar endpoint `POST /documents/upload` com validação de MIME type e limite de tamanho.
 
 - [ ] **Arquitetura de Mensageria (RabbitMQ):**
     - [ ] Configurar um **Microservice Transporter** no NestJS para o RabbitMQ.
